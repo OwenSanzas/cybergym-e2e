@@ -1,9 +1,9 @@
-# Reproduce — CyberGym-E2E Codex arm (gpt-5), detection-only (S1)
+# Reproduce — ZBH's CyberGym-E2E Codex baseline (gpt-5), detection-only (S1)
 
-This is the **Codex baseline** used in the FBv2/ZBH paper's RQ3 (CyberGym-E2E).
-It runs the **official** CyberGym-E2E Codex agent on 30 tasks and scores **S1**
-(the agent's PoC crashes the unpatched build) — the detection-only comparison
-with FBv2, which has no patch stage.
+This repository reproduces the **Codex baseline** used in **ZBH**'s CyberGym-E2E
+(RQ3) comparison. It runs the **official** CyberGym-E2E Codex agent on 30 tasks
+and scores **S1** (the agent's PoC crashes the unpatched build) — the
+detection-only comparison with ZBH, which has no patch stage.
 
 ## What is and isn't modified
 
@@ -11,7 +11,7 @@ Everything is the upstream benchmark **unchanged**, except:
 
 - **One source edit** in `scripts/run_agent.py`: the minted per-task LiteLLM
   budget key reads `CYBERGYM_MAX_BUDGET` (default **$20**) instead of the
-  hardcoded `$10`, to match the FBv2 envelope ($20 / task). One key is minted
+  hardcoded `$10`, to match the ZBH envelope ($20 / task). One key is minted
   per `run_agent.py` invocation and shared across all `--max-attempts`, so this
   is a true **shared task budget**.
 - **Added, under `reproduce/`** (no change to the agent or validator): the task
@@ -30,13 +30,13 @@ The `-codex` variants (`gpt-5.2-codex`, `gpt-5-codex`) are shut down
 scorer; `reproduce/litellm/config.yaml` defines only this model, so a wrong
 `--litellm-model-id` fails loud.
 
-## Budget / protocol (same envelope as FBv2)
+## Budget / protocol (same envelope as ZBH)
 
 - `$20` shared budget per task and a **90 min total wall-clock** deadline per
   task (`CYBERGYM_DEADLINE_S`, enforced inside `run_agent.py`): within that one
   envelope the runner restarts the agent until S1 (up to `MAXA=20` attempts, each
   capped to the remaining time) under a single shared budget key — matching the
-  FBv2 "restart until S1 / \$20 / 90 min" protocol. No further spend once the
+  ZBH "restart until S1 / \$20 / 90 min" protocol. No further spend once the
   key's budget is exhausted.
 - Network isolation ON (squid firewall). Mode `e2e` (source only).
 - Evaluation stops / is counted at the **first PoC that reproduces** (S1);
@@ -46,7 +46,7 @@ scorer; `reproduce/litellm/config.yaml` defines only this model, so a wrong
 
 ```bash
 # 0. clone this fork, cd into it
-git clone https://github.com/fuzzingbrain/cybergym-e2e.git && cd cybergym-e2e
+git clone https://github.com/OwenSanzas/cybergym-e2e.git && cd cybergym-e2e
 
 # 1. one-time setup: venv, dataset for the 30 tasks, images, firewall, sysctl
 export HF_TOKEN=hf_...            # https://huggingface.co/settings/tokens
@@ -79,5 +79,5 @@ trajectories, `summary.json`) and `reproduce/out/codex_gpt5/s1_scores.json`
 ## The 30 tasks
 
 `reproduce/tasks_30.txt` — a fixed-seed (seed 42) uniform draw of 30 from the
-666 libFuzzer C/C++ CyberGym-E2E tasks. The same 30 are used by the FBv2 and
+666 libFuzzer C/C++ CyberGym-E2E tasks. The same 30 are used by the ZBH and
 pure-fuzzing arms.
